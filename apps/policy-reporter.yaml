@@ -9,7 +9,7 @@ spec:
     repoURL: https://kyverno.github.io/policy-reporter
     chart: policy-reporter
     targetRevision: 2.24.2
-   helm:
+    helm:
       valuesObject:
         resources:
           limits:
