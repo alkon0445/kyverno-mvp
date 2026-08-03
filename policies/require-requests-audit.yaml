@@ -1,0 +1,33 @@
+﻿apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-cpu-requests
+spec:
+  validationFailureAction: Audit
+  background: true
+  rules:
+    - name: check-cpu-requests
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      exclude:
+        any:
+          - resources:
+              namespaces:
+                - kube-system
+                - kyverno
+                - argocd
+                - monitoring
+                - ingress-nginx
+                - local-path-storage
+                - policy-reporter
+      validate:
+        message: "CPU request should be set for every container (audit)."
+        pattern:
+          spec:
+            containers:
+              - resources:
+                  requests:
+                    cpu: "?*"
