@@ -48,3 +48,49 @@
         name: ubuntu
         groups: docker
         append: true
+
+    - name: Create argocd namespace
+      ansible.builtin.shell: kubectl create namespace argocd
+      become_user: ubuntu
+      register: ns_result
+      failed_when: ns_result.rc != 0 and 'already exists' not in ns_result.stderr
+
+    - name: Install ArgoCD
+      ansible.builtin.shell: kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+      become_user: ubuntu
+
+    - name: Enable ArgoCD insecure mode
+      ansible.builtin.shell: |
+        kubectl patch configmap argocd-cmd-params-cm -n argocd --type merge -p '{"data":{"server.insecure":"true"}}'
+        kubectl rollout restart deployment argocd-server -n argocd
+      become_user: ubuntu
+
+    - name: Wait for ArgoCD server to be ready
+      ansible.builtin.shell: kubectl rollout status deployment argocd-server -n argocd --timeout=300s
+      become_user: ubuntu
+
+    - name: Create monitoring namespace
+      ansible.builtin.shell: kubectl create namespace monitoring
+      become_user: ubuntu
+      register: mon_ns_result
+      failed_when: mon_ns_result.rc != 0 and 'already exists' not in mon_ns_result.stderr
+
+    - name: Create Grafana admin secret
+      ansible.builtin.shell: |
+        kubectl create secret generic grafana-admin -n monitoring \
+          --from-literal=admin-user=admin \
+          --from-literal=admin-password='{{ grafana_admin_password }}' \
+          --dry-run=client -o yaml | kubectl apply -f -
+      become_user: ubuntu
+      no_log: true
+
+    - name: Copy root application manifest
+      ansible.builtin.copy:
+        src: files/root-app.yaml
+        dest: /home/ubuntu/root-app.yaml
+        owner: ubuntu
+        group: ubuntu
+
+    - name: Apply root application
+      ansible.builtin.shell: kubectl apply -f /home/ubuntu/root-app.yaml
+      become_user: ubuntu
