@@ -1,0 +1,32 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-limits
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: require-memory-limit
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      exclude:
+        any:
+          - resources:
+              namespaces:
+                - kube-system
+                - kyverno
+                - argocd
+                - monitoring
+                - ingress-nginx
+                - local-path-storage
+      validate:
+        message: "У каждого контейнера должен быть memory limit."
+        pattern:
+          spec:
+            containers:
+              - resources:
+                  limits:
+                    memory: "?*"
