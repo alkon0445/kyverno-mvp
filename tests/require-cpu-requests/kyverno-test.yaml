@@ -1,0 +1,21 @@
+﻿apiVersion: cli.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  name: require-cpu-requests-test
+policies:
+  - ../../policies/require-requests-audit.yaml
+resources:
+  - resources.yaml
+results:
+  - policy: require-cpu-requests
+    rule: check-cpu-requests
+    kind: Pod
+    resources:
+      - good-pod
+    result: pass
+  - policy: require-cpu-requests
+    rule: check-cpu-requests
+    kind: Pod
+    resources:
+      - bad-pod-no-requests
+    result: fail

@@ -1,0 +1,22 @@
+﻿apiVersion: v1
+kind: Pod
+metadata:
+  name: good-pod
+  namespace: demo
+spec:
+  containers:
+    - name: nginx
+      image: nginx:1.27.3
+      resources:
+        limits:
+          memory: 128Mi
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: bad-pod-no-limits
+  namespace: demo
+spec:
+  containers:
+    - name: nginx
+      image: nginx:1.27.3
