@@ -1,0 +1,96 @@
+﻿---
+- name: Deploy Kyverno MVP stand
+  hosts: stand
+  become: true
+
+  tasks:
+    - name: Install base packages
+      ansible.builtin.apt:
+        name:
+          - ca-certificates
+          - curl
+          - git
+        state: present
+        update_cache: true
+
+    - name: Copy kind config
+      ansible.builtin.copy:
+        src: files/kind-config.yaml
+        dest: /home/ubuntu/kind-config.yaml
+        owner: ubuntu
+        group: ubuntu
+
+    - name: Create kind cluster
+      ansible.builtin.shell: kind create cluster --name sre-lab --config /home/ubuntu/kind-config.yaml --kubeconfig /home/ubuntu/.kube/config
+      become_user: ubuntu
+      args:
+        creates: /home/ubuntu/.kube/config
+        
+    - name: Install kubectl
+      ansible.builtin.get_url:
+        url: https://dl.k8s.io/release/v1.31.4/bin/linux/amd64/kubectl
+        dest: /usr/local/bin/kubectl
+        mode: "0755"
+
+    - name: Install KinD
+      ansible.builtin.get_url:
+        url: https://kind.sigs.k8s.io/dl/v0.24.0/kind-linux-amd64
+        dest: /usr/local/bin/kind
+        mode: "0755"
+
+    - name: Install Docker
+      ansible.builtin.shell: curl -fsSL https://get.docker.com | sh
+      args:
+        creates: /usr/bin/docker
+
+    - name: Add ubuntu user to docker group
+      ansible.builtin.user:
+        name: ubuntu
+        groups: docker
+        append: true
+
+    - name: Create argocd namespace
+      ansible.builtin.shell: kubectl create namespace argocd
+      become_user: ubuntu
+      register: ns_result
+      failed_when: ns_result.rc != 0 and 'already exists' not in ns_result.stderr
+
+    - name: Install ArgoCD
+      ansible.builtin.shell: kubectl apply --server-side -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+      become_user: ubuntu
+
+    - name: Enable ArgoCD insecure mode
+      ansible.builtin.shell: |
+        kubectl patch configmap argocd-cmd-params-cm -n argocd --type merge -p '{"data":{"server.insecure":"true"}}'
+        kubectl rollout restart deployment argocd-server -n argocd
+      become_user: ubuntu
+
+    - name: Wait for ArgoCD server to be ready
+      ansible.builtin.shell: kubectl rollout status deployment argocd-server -n argocd --timeout=300s
+      become_user: ubuntu
+
+    - name: Create monitoring namespace
+      ansible.builtin.shell: kubectl create namespace monitoring
+      become_user: ubuntu
+      register: mon_ns_result
+      failed_when: mon_ns_result.rc != 0 and 'already exists' not in mon_ns_result.stderr
+
+    - name: Create Grafana admin secret
+      ansible.builtin.shell: |
+        kubectl create secret generic grafana-admin -n monitoring \
+          --from-literal=admin-user=admin \
+          --from-literal=admin-password='{{ grafana_admin_password }}' \
+          --dry-run=client -o yaml | kubectl apply -f -
+      become_user: ubuntu
+      no_log: true
+
+    - name: Copy root application manifest
+      ansible.builtin.copy:
+        src: files/root-app.yaml
+        dest: /home/ubuntu/root-app.yaml
+        owner: ubuntu
+        group: ubuntu
+
+    - name: Apply root application
+      ansible.builtin.shell: kubectl apply -f /home/ubuntu/root-app.yaml
+      become_user: ubuntu
