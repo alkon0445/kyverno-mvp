@@ -19,6 +19,14 @@ spec:
           resources:
             limits:
               memory: 128Mi
+          ingress:
+            enabled: true
+            className: nginx
+            hosts:
+              - host: policyreporter.local
+                paths:
+                  - path: /
+                    pathType: Prefix
         kyvernoPlugin:
           enabled: true
           resources:
@@ -26,14 +34,6 @@ spec:
               memory: 128Mi
         monitoring:
           enabled: true
-        ingress:
-          enabled: true
-          className: nginx
-          hosts:
-            - host: policyreporter.local
-              paths:
-                - path: /
-                  pathType: Prefix
   destination:
     server: https://kubernetes.default.svc
     namespace: policy-reporter
