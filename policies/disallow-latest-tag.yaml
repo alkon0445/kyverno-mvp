@@ -23,7 +23,7 @@ spec:
                 - ingress-nginx
                 - local-path-storage
       validate:
-        message: "У образа должен быть явный тег (image:версия)."
+        message: "Image must have an explicit tag (image:version)."
         pattern:
           spec:
             containers:
@@ -45,7 +45,7 @@ spec:
                 - ingress-nginx
                 - local-path-storage
       validate:
-        message: "Тег :latest запрещён — укажи конкретную версию."
+        message: "The :latest tag is not allowed - specify a concrete version."
         pattern:
           spec:
             containers:

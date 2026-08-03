@@ -23,7 +23,7 @@ spec:
                 - ingress-nginx
                 - local-path-storage
       validate:
-        message: "У каждого контейнера должен быть memory limit."
+        message: "Memory limit is required for every container."
         pattern:
           spec:
             containers:
