@@ -13,6 +13,31 @@
         state: present
         update_cache: true
 
+    - name: Copy kind config
+      ansible.builtin.copy:
+        src: files/kind-config.yaml
+        dest: /home/ubuntu/kind-config.yaml
+        owner: ubuntu
+        group: ubuntu
+
+    - name: Create kind cluster
+      ansible.builtin.shell: kind create cluster --name sre-lab --config /home/ubuntu/kind-config.yaml --kubeconfig /home/ubuntu/.kube/config
+      become_user: ubuntu
+      args:
+        creates: /home/ubuntu/.kube/config
+        
+    - name: Install kubectl
+      ansible.builtin.get_url:
+        url: https://dl.k8s.io/release/v1.31.4/bin/linux/amd64/kubectl
+        dest: /usr/local/bin/kubectl
+        mode: "0755"
+
+    - name: Install KinD
+      ansible.builtin.get_url:
+        url: https://kind.sigs.k8s.io/dl/v0.24.0/kind-linux-amd64
+        dest: /usr/local/bin/kind
+        mode: "0755"
+
     - name: Install Docker
       ansible.builtin.shell: curl -fsSL https://get.docker.com | sh
       args:
