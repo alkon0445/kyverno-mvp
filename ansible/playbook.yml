@@ -1,6 +1,6 @@
 ﻿---
 - name: Deploy Kyverno MVP stand
-  hosts: stand
+  hosts: all
   become: true
 
   tasks:
