@@ -56,7 +56,7 @@
       failed_when: ns_result.rc != 0 and 'already exists' not in ns_result.stderr
 
     - name: Install ArgoCD
-      ansible.builtin.shell: kubectl apply --server-side -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+      ansible.builtin.shell: kubectl apply --server-side --force-conflicts -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
       become_user: ubuntu
 
     - name: Enable ArgoCD insecure mode
