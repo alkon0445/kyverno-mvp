@@ -118,7 +118,7 @@ require-limits:
   require-memory-limit: 'validation error: Memory limit is required for every container. ...'
 ```
 
-![Kyverno отклоняет bad-pod](docs/bad-pod-denied.png)
+![Kyverno отклоняет bad-pod](docs/bad-pod-denied.jpg)
 
 Здесь сработали сразу две политики. Деплой нарушающего манифеста через Git закончится так же — отказ получит ArgoCD при синхронизации.
 
@@ -149,7 +149,7 @@ kyverno test tests/
 
 Те же тесты гоняет GitHub Actions на каждый push и PR. Ветка `main` защищена: прямой push запрещён, PR не мёржится без зелёного `kyverno-test`. Непротестированная политика не попадает в main — а значит, и в кластер, потому что ArgoCD синхронизирует main.
 
-![Обязательная проверка kyverno-test в pull request](docs/pr-required-check.png)
+![Обязательная проверка kyverno-test в pull request](docs/pr-required-check.jpg)
 
 ## Допущения и решения
 
