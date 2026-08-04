@@ -20,11 +20,17 @@
         owner: ubuntu
         group: ubuntu
 
+    - name: Check if kind cluster exists
+      ansible.builtin.shell: kind get clusters | grep -q sre-lab
+      become_user: ubuntu
+      register: cluster_exists
+      failed_when: false
+      changed_when: false
+
     - name: Create kind cluster
       ansible.builtin.shell: kind create cluster --name sre-lab --config /home/ubuntu/kind-config.yaml --kubeconfig /home/ubuntu/.kube/config
       become_user: ubuntu
-      args:
-        creates: /home/ubuntu/.kube/config
+      when: cluster_exists.rc != 0
         
     - name: Install kubectl
       ansible.builtin.get_url:
