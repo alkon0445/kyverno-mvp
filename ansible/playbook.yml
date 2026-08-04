@@ -2,6 +2,9 @@
 - name: Deploy Kyverno MVP stand
   hosts: all
   become: true
+  
+  vars:
+    repo_url: "https://github.com/alkon0445/kyverno-mvp"
 
   tasks:
     - name: Install base packages
@@ -98,9 +101,9 @@
       become_user: ubuntu
       no_log: true
 
-    - name: Copy root application manifest
-      ansible.builtin.copy:
-        src: files/root-app.yaml
+    - name: Render root application manifest
+      ansible.builtin.template:
+        src: files/root-app.yaml.j2
         dest: /home/ubuntu/root-app.yaml
         owner: ubuntu
         group: ubuntu

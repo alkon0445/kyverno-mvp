@@ -1,17 +1,17 @@
 ﻿apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: argocd-config
+  name: demo
   namespace: argocd
 spec:
   project: default
   source:
-    repoURL: https://github.com/alkon0445/kyverno-mvp.git
+    repoURL: {{ .Values.repoURL }}
     targetRevision: main
-    path: manifests/argocd
+    path: manifests/demo
   destination:
     server: https://kubernetes.default.svc
-    namespace: argocd
+    namespace: demo
   syncPolicy:
     automated:
       prune: true
