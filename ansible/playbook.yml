@@ -31,12 +31,20 @@
         url: https://dl.k8s.io/release/v1.31.4/bin/linux/amd64/kubectl
         dest: /usr/local/bin/kubectl
         mode: "0755"
+      register: kubectl_download
+      until: kubectl_download is succeeded
+      retries: 3
+      delay: 5
 
     - name: Install KinD
       ansible.builtin.get_url:
         url: https://kind.sigs.k8s.io/dl/v0.24.0/kind-linux-amd64
         dest: /usr/local/bin/kind
         mode: "0755"
+      register: kind_download
+      until: kind_download is succeeded
+      retries: 3
+      delay: 5
 
     - name: Install Docker
       ansible.builtin.shell: curl -fsSL https://get.docker.com | sh
